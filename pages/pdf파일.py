@@ -10,15 +10,7 @@ st.set_page_config(
 )
 
 # 고정된 7개 과목 리스트
-SUBJECTS = [
-    "국어",
-    "수학",
-    "영어",
-    "역사",
-    "과학",
-    "사회",
-    "가정·정보",
-]  # 가정과 정보를 하나로 묶거나 나눌 수 있습니다.
+SUBJECTS = ["국어", "수학", "영어", "역사", "과학", "사회", "가정·정보"]
 
 DATA_FILE = "links.json"
 
@@ -46,11 +38,10 @@ if "db" not in st.session_state:
 
 # 3. AI 자동 과목 분류 함수 (Gemini API 활용)
 def classify_with_ai(title_text):
-    # Streamlit Secrets에서 API 키를 가져옵니다 (배포 시 설정 필요)
     api_key = st.secrets.get("GEMINI_API_KEY")
 
     if not api_key:
-        # API 키가 설정되지 않은 경우, 제목에 과목명이 포함되어 있는지 간단히 체크하는 기본 로직으로 대체
+        # API 키가 없을 때의 기본 분류 로직
         for sub in SUBJECTS:
             if sub in title_text:
                 return sub
@@ -93,7 +84,9 @@ with st.form("link_form", clear_on_submit=True):
         "🔗 링크 주소 (URL)",
         placeholder="https://drive.google.com/... 혹은 파일 링크",
     )
-    submit_btn = st.form_submit_with_click(label="🚀 등록하기")
+
+    # 🛠️ 이 부분을 똑바로 고쳤습니다!
+    submit_btn = st.form_submit_button(label="🚀 등록하기")
 
     if submit_btn:
         if not title or not url:
@@ -103,11 +96,7 @@ with st.form("link_form", clear_on_submit=True):
                 assigned_subject = classify_with_ai(title)
 
             if assigned_subject == "미분류":
-                st.warning(
-                    "🤔 AI가 자동으로 과목을 분류하지 못했습니다. 수동 분류 프로세스가 필요할 수 있습니다."
-                )
-                # 분류 실패 시 기본적으로 첫 번째 과목에 넣거나 수동 선택하게 유도 가능 (여기선 우선 국어로 예시)
-                assigned_subject = "국어"
+                assigned_subject = "국어"  # 기본값 방어 코드
 
             # 데이터 저장
             new_item = {"title": title, "url": url}
@@ -123,7 +112,7 @@ st.write("---")
 # 5. 과목별 조회 섹션 (학생/교사 공용)
 st.header("📖 과목별 자료 보기")
 
-# 7개 과목을 탭(Tab) 스타일로 보기 좋게 분할
+# 7개 과목을 탭(Tab) 스타일로 분할
 tabs = st.tabs([f"📚 {sub}" for sub in SUBJECTS])
 
 for idx, sub in enumerate(SUBJECTS):
@@ -134,7 +123,6 @@ for idx, sub in enumerate(SUBJECTS):
         if not links:
             st.info(f"현재 {sub} 과목에 등록된 링크 자료가 없습니다.")
         else:
-            # 깔끔한 카드 형태로 목록 출력
             for l_idx, link_item in enumerate(links):
                 with st.container():
                     col1, col2 = st.columns([5, 1])
