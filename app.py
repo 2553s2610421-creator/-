@@ -6,10 +6,9 @@ import calendar
 # 1. 페이지 설정
 st.set_page_config(page_title="학사 일정 플래너", page_icon="📅", layout="wide")
 
-# 2. 시스템 UI와 충돌 없는 안전한 CSS 스타일 적용 (글자 겹침 현상 해결)
+# 2. 스타일 CSS 적용 (텍스트 영역만 타겟팅하여 충돌 방지)
 st.markdown("""
     <style>
-        /* Streamlit 고유 아이콘이나 버튼 텍스트가 깨지지 않도록 일반 텍스트 및 제목 영역만 타겟팅 */
         h1, h2, h3, .stMarkdown p, .stMarkdown span {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
         }
@@ -45,7 +44,7 @@ if 'events_db' not in st.session_state:
 st.title("📅 학사 일정 플래너")
 st.write("---")
 
-# 6. 상단 영역: 오늘 일정 요약
+# 6. 상단 영역: 오늘 일정 요약 (f-string 중괄호 에러 원천 차단형 문법으로 수정)
 st.subheader("오늘의 일정")
 today_date = datetime.today().date()
 today_evs = [e for e in st.session_state.events_db if e['date'] == today_date]
@@ -53,6 +52,4 @@ today_evs = [e for e in st.session_state.events_db if e['date'] == today_date]
 if today_evs:
     cols = st.columns(len(today_evs))
     for i, ev in enumerate(today_evs):
-        info = CATEGORY_INFO[ev['category']]
-        with cols[i]:
-            st.markdown(f"<div style='padding:12px; border-radius:6px; background:{
+        info = CATEGORY_INFO.get(ev['category'], {"color": "#FFFFFF", "text": "#0
