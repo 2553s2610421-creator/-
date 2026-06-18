@@ -6,11 +6,11 @@ import calendar
 # 1. 페이지 설정
 st.set_page_config(page_title="학사 일정 플래너", page_icon="📅", layout="wide")
 
-# 2. 스타일 CSS 적용 (텍스트 영역만 타겟팅하여 충돌 방지)
+# 2. 스타일 CSS 적용
 st.markdown("""
     <style>
         h1, h2, h3, .stMarkdown p, .stMarkdown span {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
         }
         h1, h2, h3 {
             font-weight: 600 !important;
@@ -44,7 +44,7 @@ if 'events_db' not in st.session_state:
 st.title("📅 학사 일정 플래너")
 st.write("---")
 
-# 6. 상단 영역: 오늘 일정 요약 (f-string 중괄호 에러 원천 차단형 문법으로 수정)
+# 6. 상단 영역: 오늘 일정 요약 (가로 길이 최소화)
 st.subheader("오늘의 일정")
 today_date = datetime.today().date()
 today_evs = [e for e in st.session_state.events_db if e['date'] == today_date]
@@ -52,4 +52,90 @@ today_evs = [e for e in st.session_state.events_db if e['date'] == today_date]
 if today_evs:
     cols = st.columns(len(today_evs))
     for i, ev in enumerate(today_evs):
-        info = CATEGORY_INFO.get(ev['category'], {"color": "#FFFFFF", "text": "#0
+        info = CATEGORY_INFO[ev['category']]
+        with cols[i]:
+            c = info['color']
+            t = info['text']
+            cat = ev['category']
+            cnt = ev['content']
+            box_html = f"<div style='padding:12px; border-radius:6px; background:{c}; color:{t}; font-weight:bold;'>[{cat}] {cnt}</div>"
+            st.markdown(box_html, unsafe_allow_html=True)
+else:
+    st.write("오늘 예정된 학사 일정이 없습니다.")
+
+st.write("---")
+
+# 7. 메인 화면 레이아웃
+left_col, right_col = st.columns([3, 1])
+
+with left_col:
+    now = datetime.today()
+    c1, c2 = st.columns(2)
+    year = c1.selectbox("연도", range(now.year - 1, now.year + 3), index=1)
+    month = c2.selectbox("월", range(1, 13), index=now.month - 1)
+    
+    st.subheader(f"{year}년 {month}월")
+    
+    # 캘린더 요일 헤더
+    hd = "<div style='display:grid; grid-template-columns:repeat(7,1fr); gap:2px; text-align:center; font-weight:bold; margin-bottom:5px;'>"
+    hd += "<div style='color:#E53E3E;'>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div style='color:#3182CE;'>토</div></div>"
+    st.markdown(hd, unsafe_allow_html=True)
+    
+    cal = calendar.Calendar(firstweekday=6)
+    weeks = cal.monthdatescalendar(year, month)
+    
+    cells = "<div style='display:grid; grid-template-columns:repeat(7,1fr); gap:2px;'>"
+    for wk in weeks:
+        for day in wk:
+            if day.month != month:
+                cells += "<div style='min-height:90px; background:#F7FAFC; border:1px solid #EDF2F7;'></div>"
+                continue
+                
+            bg = "#F7FAFC" if day == today_date else "#FFFFFF"
+            border = "2px solid #3182CE" if day == today_date else "1px solid #EDF2F7"
+            
+            day_idx = day.weekday()
+            tc = "#E53E3E" if day_idx == 6 else ("#3182CE" if day_idx == 5 else "#4A5568")
+            
+            ev_html = ""
+            for ev in [e for e in st.session_state.events_db if e['date'] == day]:
+                info = CATEGORY_INFO[ev['category']]
+                c = info['color']
+                t = info['text']
+                cnt = ev['content']
+                ev_html += f"<div style='font-size:11px; padding:2px; margin-top:2px; border-radius:3px; background:{c}; color:{t}; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;'>{cnt}</div>"
+            
+            d_num = str(day.day)
+            cells += f"<div style='min-height:90px; background:{bg}; border:{border}; padding:4px;'><b style='color:{tc};'>{d_num}</b>{ev_html}</div>"
+            
+    cells += "</div>"
+    st.markdown(cells, unsafe_allow_html=True)
+    st.write("---")
+    
+    # 상시 노출되는 직관적인 일정 등록 창
+    st.subheader("➕ 바로 일정 등록하기")
+    with st.form("add_form", clear_on_submit=True):
+        f1, f2, f3 = st.columns([1, 1, 2])
+        in_date = f1.date_input("날짜 선택", datetime.today())
+        in_cate = f2.selectbox("분류 선택", list(CATEGORY_INFO.keys()))
+        in_cont = f3.text_input("일정 내용 입력", placeholder="예: 수학 탐구 보고서 제출")
+        
+        if st.form_submit_button("캘린더에 바로 추가하기"):
+            if in_cont.strip():
+                st.session_state.events_db.append({"date": in_date, "category": in_cate, "content": in_cont})
+                st.success("일정이 정상적으로 추가되었습니다.")
+                st.rerun()
+            else:
+                st.error("내용을 입력하셔야 등록이 완료됩니다.")
+
+with right_col:
+    st.subheader("주간 요약 및 디데이")
+    up_evs = [e for e in st.session_state.events_db if e['date'] >= today_date]
+    up_evs.sort(key=lambda x: x['date'])
+    
+    if up_evs:
+        for ev in up_evs[:4]:
+            info = CATEGORY_INFO[ev['category']]
+            d = (ev['date'] - today_date).days
+            
+            # 차
