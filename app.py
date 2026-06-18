@@ -25,13 +25,13 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# 3. 차분한 뮤트 파스텔 색상 매핑 (오류 방지를 위해 주석 제거 및 한 줄 정돈)
+# 3. 차분한 뮤트 파스텔 색상 매핑
 CATEGORY_INFO = {
-    "수행평가": {"emoji": "▫️", "color": "#FDE8E8", "text_color": "#E53E3E"},
-    "시험": {"emoji": "▫️", "color": "#FEF3C7", "text_color": "#D97706"},
-    "학교 행사": {"emoji": "▫️", "color": "#F3E8FF", "text_color": "#8B5CF6"},
-    "동아리": {"emoji": "▫️", "color": "#FEFCE8", "text_color": "#CA8A04"},
-    "모의고사": {"emoji": "▫️", "color": "#DCFCE7", "text_color": "#16A34A"}
+    "수행평가": {"color": "#FDE8E8", "text_color": "#E53E3E"},
+    "시험": {"color": "#FEF3C7", "text_color": "#D97706"},
+    "학교 행사": {"color": "#F3E8FF", "text_color": "#8B5CF6"},
+    "동아리": {"color": "#FEFCE8", "text_color": "#CA8A04"},
+    "모의고사": {"color": "#DCFCE7", "text_color": "#16A34A"}
 }
 
 # 4. 세션 데이터 초기화
@@ -86,15 +86,4 @@ with left_col:
     st.subheader(f"{year}년 {month}월")
     
     # 캘린더 요일 헤더
-    days_header = [
-        "<span style='color:#E53E3E;'>일</span>", "월", "화", "수", "목", "금", 
-        "<span style='color:#3182CE;'>토</span>"
-    ]
-    header_html = "".join([f"<div style='text-align:center; font-weight:500; background-color:#F7FAFC; color:#4A5568; padding:8px; border:1px solid #E2E8F0;'>{d}</div>" for d in days_header])
-    
-    # 달력 날짜 매트릭스 계산
-    cal = calendar.Calendar(firstweekday=6)
-    month_days = cal.monthdatescalendar(year, month)
-    
-    cells_html = ""
-    for week in month_days:
+    days_header =
