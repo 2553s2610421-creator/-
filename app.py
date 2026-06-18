@@ -85,5 +85,15 @@ with left_col:
         
     st.subheader(f"{year}년 {month}월")
     
-    # 캘린더 요일 헤더
-    days_header =
+    # 캘린더 요일 헤더 (오류 방지를 위해 완벽히 한 줄로 선언)
+    header_html = "<div style='text-align:center; font-weight:500; background-color:#F7FAFC; color:#E53E3E; padding:8px; border:1px solid #E2E8F0;'>일</div><div style='text-align:center; font-weight:500; background-color:#F7FAFC; color:#4A5568; padding:8px; border:1px solid #E2E8F0;'>월</div><div style='text-align:center; font-weight:500; background-color:#F7FAFC; color:#4A5568; padding:8px; border:1px solid #E2E8F0;'>화</div><div style='text-align:center; font-weight:500; background-color:#F7FAFC; color:#4A5568; padding:8px; border:1px solid #E2E8F0;'>수</div><div style='text-align:center; font-weight:500; background-color:#F7FAFC; color:#4A5568; padding:8px; border:1px solid #E2E8F0;'>목</div><div style='text-align:center; font-weight:500; background-color:#F7FAFC; color:#4A5568; padding:8px; border:1px solid #E2E8F0;'>금</div><div style='text-align:center; font-weight:500; background-color:#F7FAFC; color:#3182CE; padding:8px; border:1px solid #E2E8F0;'>토</div>"
+    
+    # 달력 날짜 매트릭스 계산
+    cal = calendar.Calendar(firstweekday=6)
+    month_days = cal.monthdatescalendar(year, month)
+    
+    cells_html = ""
+    for week in month_days:
+        for day in week:
+            if day.month != month:
+                cells_html += "<div style='min-height:105px; background-color:#F7FA
